@@ -1,0 +1,10 @@
+
+
+curl https://aaron.messaging.solace.cloud:9443/bus_trak/gps/v2/049X/01600/001.36009/0103.98959/21/AWESOME \
+ -u bussub:bussub \
+ -H 'Solace-Delivery-Mode: DIRECT' \
+ -d '{ "psgrCap": 0.41, "heading": 203, "busNum": 1600, "latitude": 1.36009, "speed": 88, "routeNum": "49X", "longitude": 103.98959, "status": "AWESOME", "anythingElse": "POSTedWithREST" }'
+
+
+
+

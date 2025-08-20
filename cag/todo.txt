@@ -1,0 +1,17 @@
+
+
+X make it work for either text messages or binary messages
+- add floating div with message rate built in
+X integrate heat maps display
+X new routes
+   X generate bounding polygon for Singapore
+   X generate new bus routes
+   X generate new car routes
+- test Sumeet's code
+X make bouncing icon
+- make different zoom levels icons
+- refactor Vehicle code into two separate classes and use interface
+-
+
+- geo-filter: make json search object
+- multiple shapes

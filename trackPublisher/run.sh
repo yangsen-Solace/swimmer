@@ -1,0 +1,1 @@
+nohup java -jar trackPublisher-0.0.1-SNAPSHOT-jar-with-dependencies.jar SAINTUNITRACKNOTIFICATIONSEXPORT_2022-04-13_1625.DMP tcp://127.0.0.1:55555 default user1 123456 50 >/dev/null 2>&1 &

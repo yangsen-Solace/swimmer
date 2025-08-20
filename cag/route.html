@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Aaron's Next-Gen Geo Solace Demo</title>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0px;
+      padding: 0px
+    }
+    .delete-menu {
+      position: absolute;
+      background: white;
+      padding: 3px;
+      color: #666;
+      font-weight: bold;
+      border: 1px solid #999;
+      font-family: sans-serif;
+      font-size: 12px;
+      box-shadow: 1px 3px 3px rgba(0, 0, 0, .3);
+      margin-top: -10px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .delete-menu:hover {
+      background: #eee;
+    }
+
+    #map-canvas {
+      //width: 50%;
+      height: 80%;
+      margin: 0px;
+      padding: 0px
+    }
+  </style>
+  <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDNwwRkcC7f7ZGlaOzsJdm2_NOO81Wfl48&v=3.exp"></script> -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9JGEC8ucg3DFD2gSdyqDIptMLkkHKfqM&v=3.exp&libraries=visualization"></script>
+  <script type="text/javascript" src="solclient-debug.js"></script>
+  <!--script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/trunk/markerwithlabel/src/markerwithlabel_packed.js"></script-->
+  <script type="text/javascript" src="marker_with_label.js"></script>
+  <style>
+    h1 {
+      font: 22pt Haettenschweiler, Impact, fantasy; //color: #003b74;
+      color: #005dab;
+      padding: 5px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+    }
+
+    .orange_o {
+      color: #f4961c;
+      font: 17pt century gothic;
+    }
+
+    .labels {
+      color: blue;
+      background-color: white;
+      font-family: "Verdana", "Arial", sans-serif;
+      font-size: 10px; //font-weight: bold;
+      text-align: center;
+      width: 100px;
+      border: 1px solid blue; //     white-space: nowrap;
+    }
+
+    .labels3 {
+      //     color: blue;
+      background-color: rgba(255, 255, 255, 0.7);
+      font-family: "Arial", sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      width: 120px;
+      border: 1px solid black; //     white-space: nowrap;
+    }
+
+    .labels2 {
+      color: rgba(0, 0, 100, 1);
+      background-color: rgba(255, 255, 255, 0.7);
+      font-family: "Arial", sans-serif;
+      font-size: 10px;
+      font-weight: bold;
+      text-align: left;
+      width: 80px;
+      border: 1px solid rgba(0, 0, 100, 1);
+      padding-left: 1px; //     white-space: nowrap;
+    }
+
+
+
+    .sliders {
+      font: 16pt Haettenschweiler, Impact, fantasy;
+      color: #003b74; //005dab;
+    }
+  </style>
+  <script>
+    // This example adds a user-editable rectangle to the map.
+
+    var map;
+    var line;
+    var boundary;
+
+    var directionsDisplay;
+    var directionsService = new google.maps.DirectionsService();
+
+    function initialize() {
+
+      var solStyles = [{
+        "featureType": "transit",
+        "stylers": [{
+          "visibility": "off"
+        }]
+      }, {
+        "featureType": "water",
+        "stylers": [{
+          "saturation": -50
+        }]
+      }, {
+        "featureType": "road",
+        "elementType": "labels",
+        "stylers": [{
+          "visibility": "off"
+        }]
+      }, {
+        "stylers": [{
+            "gamma": 0.49
+          },
+          {
+            "hue": "#003bff"
+          },
+          {
+            "saturation": -27
+          }
+        ]
+      }, {
+        "featureType": "road",
+        "elementType": "geometry.fill",
+        "stylers": [{
+          "color": "#ffc580"
+        }]
+      }];
+
+      var styledMap = new google.maps.StyledMapType(solStyles, {
+        name: "Solace Styled Map"
+      });
+
+
+      var mapOptions = {
+        center: new google.maps.LatLng(1.35, 103.85), // Singapore
+        zoom: 12, // demo
+
+        draggable: true,
+
+        mapTypeId: 'satellite',
+        mapTypeControlOptions: {
+          mapTypeIds: ['coordinate', 'roadmap'],
+          style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+        },
+
+        scaleControl: true,
+        drawable: true,
+        clickable: false,
+        mapTypeControlOptions: {
+          //mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'map_style']
+        }
+
+      };
+      directionsDisplay = new google.maps.DirectionsRenderer();
+      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+      //map.mapTypes.set('map_style', styledMap);
+      map.setMapTypeId('terrain');
+
+      //map.setMapTypeId('map_style');
+      directionsDisplay.setMap(map);
+
+      var lineCoords = [
+          {lat: 1.3, lng: 103.8},
+          {lat: 1.3, lng: 103.9}
+        ];
+      line = new google.maps.Polyline({
+          path: lineCoords,
+          editable: true,
+          geodesic: true,
+          strokeColor: '#0000FF',
+          strokeOpacity: 1.0,
+          strokeWeight: 1
+        });
+      line.setMap(map);
+
+      var redCoords = [
+        new google.maps.LatLng(1.254409,103.793820),
+        new google.maps.LatLng(1.259502,103.778177),
+        new google.maps.LatLng(1.272832,103.786394),
+        new google.maps.LatLng(1.278212,103.777079),
+        new google.maps.LatLng(1.267690,103.770981),
+        new google.maps.LatLng(1.280799,103.749173),
+        new google.maps.LatLng(1.286680,103.754994),
+        new google.maps.LatLng(1.278558,103.769192),
+        new google.maps.LatLng(1.283393,103.772233),
+        new google.maps.LatLng(1.290231,103.760118),
+        new google.maps.LatLng(1.294641,103.762840),
+        new google.maps.LatLng(1.300799,103.743048),
+        new google.maps.LatLng(1.301789,103.726810),
+        // new google.maps.LatLng(1.293393,103.708552),
+        // new google.maps.LatLng(1.291016,103.724222),
+        // new google.maps.LatLng(1.274592,103.738394),
+//        new google.maps.LatLng(1.228014,103.675414),
+        // new google.maps.LatLng(1.270096,103.653825),
+        // new google.maps.LatLng(1.285610,103.673818),
+        // new google.maps.LatLng(1.290553,103.695952),
+        new google.maps.LatLng(1.294947,103.681854),
+        new google.maps.LatLng(1.292313,103.663545),
+        new google.maps.LatLng(1.312676,103.647468),
+        // new google.maps.LatLng(1.310153,103.635913),
+        // new google.maps.LatLng(1.282455,103.652629),
+        // new google.maps.LatLng(1.257950,103.621172),
+        // new google.maps.LatLng(1.287676,103.611687),
+        new google.maps.LatLng(1.348915,103.638295),
+        new google.maps.LatLng(1.409809,103.673829),
+        new google.maps.LatLng(1.451754,103.719577),
+        new google.maps.LatLng(1.436860,103.747944),
+        new google.maps.LatLng(1.466927,103.795880),
+        new google.maps.LatLng(1.469844,103.837360),
+        new google.maps.LatLng(1.433979,103.868883),
+        new google.maps.LatLng(1.428487,103.892338),
+        new google.maps.LatLng(1.421623,103.913046),
+        new google.maps.LatLng(1.394834,103.937293),
+        new google.maps.LatLng(1.385205,103.962227),
+        new google.maps.LatLng(1.389975,103.978449),
+        new google.maps.LatLng(1.390932,103.993727),
+        new google.maps.LatLng(1.373627,104.008490),
+        new google.maps.LatLng(1.359655,104.035870),
+        new google.maps.LatLng(1.316164,104.019648),
+        new google.maps.LatLng(1.312931,103.968321),
+        new google.maps.LatLng(1.297142,103.903558),
+        new google.maps.LatLng(1.265787,103.852673),
+        new google.maps.LatLng(1.256399,103.844361),
+        new google.maps.LatLng(1.248606,103.857261),  // most south
+        new google.maps.LatLng(1.238513,103.834995),
+        new google.maps.LatLng(1.250591,103.817931),
+        new google.maps.LatLng(1.267195,103.798221),
+      ];
+
+      boundary = new google.maps.Polygon({
+        map: map,
+        paths: redCoords,
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.7,
+        strokeWeight: 3,
+        fillColor: '#FF0000',
+        fillOpacity: 0.01,
+        visible: true,
+        draggable: true,
+        clickable: false,
+        editable: true,
+        geodesic: false,
+        zIndex: 200000,
+      });
+      boundary.setMap(map);
+
+      var zoomLevel = map.getZoom();
+      google.maps.event.addListener(map, 'zoom_changed', function() {
+        console.log("Zoom changed!!  from "+zoomLevel+ " to "+map.getZoom());
+        if (map.getZoom() >= 17 && zoomLevel <= 16) {  // zooming in far so use icons
+
+        }
+        zoomLevel = map.getZoom();
+      });
+    // put code in here if if needs to be initialized after the map finishes loading
+    }
+
+    /////////// END OF MAP INITIALIZE method ////////////////////////////////////////
+
+
+    function showPoly() {
+      boundary.getPath();
+      var coordsStr = "";
+      for (var i=0;i<boundary.getPath().getLength();i++) {
+        coordsStr += boundary.getPath().getAt(i).lat().toFixed(6) + "," + boundary.getPath().getAt(i).lng().toFixed(6) + ";";
+      }
+      var oNewP = document.createElement("p");
+      var oText = document.createTextNode(coordsStr);
+      oNewP.appendChild(oText);
+      document.body.appendChild(oNewP);
+    }
+
+    function randomCoord(poly) {
+      var point;
+      do {
+        // lat range: 1.2 - 1.5
+        // lng range: 103.5 - 104.1
+        var rLat = (Math.random() * 0.3) + 1.2;
+        var rLng = (Math.random() * 0.6) + 103.5;
+        point = new google.maps.LatLng(rLat,rLng);
+      } while (!google.maps.geometry.poly.containsLocation(point,poly));
+      return point;
+    }
+
+    function randomRoute() {
+      console.log("random");
+      var p1 = randomCoord(boundary);
+      var p2 = randomCoord(boundary);
+      if ("small" == "nope") {
+        console.log("loop");
+        var angle = Math.random() * 2 * Math.PI;
+        var dist = Math.random() * 0.1;
+        p2 = new google.maps.LatLng(p1.lat() + (Math.cos(angle) * dist), p1.lng() + (Math.sin(angle) * dist));
+        if (!google.maps.geometry.poly.containsLocation(p2,boundary)) return;
+      }
+      p1 = new google.maps.LatLng(1.28207492207952, 103.85086074925066);
+      p2 = new google.maps.LatLng(1.28561840945474, 103.85342223246427);
+
+
+
+      line.setPath([p2,p1]);
+      console.log("calc!");
+      calcRoute();
+    }
+
+    // {
+    //   origin: LatLng | String | google.maps.Place,
+    //   destination: LatLng | String | google.maps.Place,
+    //   travelMode: TravelMode,
+    //   transitOptions: TransitOptions,
+    //   drivingOptions: DrivingOptions,
+    //   unitSystem: UnitSystem,
+    //   waypoints[]: DirectionsWaypoint,
+    //   optimizeWaypoints: Boolean,
+    //   provideRouteAlternatives: Boolean,
+    //   avoidFerries: Boolean,
+    //   avoidHighways: Boolean,
+    //   avoidTolls: Boolean,
+    //   region: String
+    // }
+
+    function calcRoute() {
+      //return; // comment this line to draw a random path between two spots and draw on the map
+      //var angle = Math.random() * 2 * Math.PI;
+      //var dist = Math.random() * 0.05;
+      //var dist = Math.random() * 0.2; // chicago
+      //var cLat = 40.762646;
+      //var cLon = -73.977603;
+      //var cLat = 41.8828;  // chicago
+      //var cLon = -87.6712;
+      //var cLat = 51.51;
+      //var cLon = -0.1;
+      //var start = new google.maps.LatLng(cLat + (Math.cos(angle) * dist), cLon + (Math.sin(angle) * dist));
+      if (line.getPath().getLength() == 2) {  // i.e. a straigh line
+          var p1 = new google.maps.LatLng(1.28207492207952, 103.85086074925066);
+          var p2 = new google.maps.LatLng(1.28561840945474, 103.85342223246427);
+          var p3 = new google.maps.LatLng(1.29095592348389, 103.85453419435228);
+          var start = line.getPath().getAt(0);
+          var end = line.getPath().getAt(1);
+          var request = {
+            origin: p2,
+            destination: p3,
+            travelMode: google.maps.TravelMode.DRIVING
+            // travelMode: google.maps.TravelMode.WALKING,
+            // avoidTolls: true,
+            // avoidHighways: true,
+          };
+          doDrivingRequest(request);
+          // var millisecondsToWait = Math.random() * 2;
+          // setTimeout(function() {
+          //     // Whatever you want to do after the wait
+          // }, millisecondsToWait);
+          // var request2 = {
+          //   origin: end,
+          //   destination: start,
+          //   travelMode: google.maps.TravelMode.DRIVING
+          // };
+          // doDrivingRequest(request2);
+      } else {  // one way only for now
+          var start = line.getPath().getAt(0);
+          var end = line.getPath().getAt(line.getPath().getLength()-1);
+          var request = {
+            origin: start,
+            destination: end,
+            travelMode: google.maps.TravelMode.DRIVING
+          };
+          if (line.getPath().getLength() > 2) {
+              var waypoints = [];
+              for (var i=1;i < line.getPath().getLength()-1;i++) {
+                  waypoints.push({
+                    location: line.getPath().getAt(i),
+                    stopover: false
+                  });
+              }
+              request["waypoints"] = waypoints;
+              console.log(waypoints);
+          }
+          doDrivingRequest(request);
+      }
+    }
+
+
+    function doDrivingRequest(request) {
+      directionsService.route(request, function(result, status) {
+        if (status == google.maps.DirectionsStatus.OK) {
+          directionsDisplay.setDirections(result);
+          //var pathCoords = google.maps.geometry.encoding.decodePath(result.routes[0].overview_polyline);
+          var pathCoords = result.routes[0].overview_path;
+          var coordsStr = "";
+
+          for (var i = 0; i < pathCoords.length; i++) {
+            coordsStr += pathCoords[i].lat().toFixed(6) + "," + pathCoords[i].lng().toFixed(6) + ";";
+          }
+          // console.log(pathCoords.length);
+          var leg = result.routes[0].legs[0];
+          //console.log(result);
+          // console.log("distance: "+(leg.distance.value));
+          //console.log("distance: "+(leg.distance.text));
+          var details = result.routes[0].copyrights + "|";
+          details += leg.start_address + "|" + result.routes[0].legs[0].end_address + "|";
+          details += leg.distance.text + "|" + leg.distance.value + "|";
+          var oNewP = document.createElement("p");
+          var oText = document.createTextNode(details + coordsStr);
+          //var oText = document.createTextNode(coordsStr);
+          oNewP.appendChild(oText);
+          document.body.appendChild(oNewP);
+          //console.log(details + coordsStr);
+        }
+      });
+    }
+
+
+    google.maps.event.addDomListener(window, 'load', initialize);
+
+
+
+
+    // solace code //////////////////////////////////////////////////////////////////////////////
+
+
+
+    this.utils_updateContent = function(msg) {
+      console.log("content: '" + msg + "'");
+    };
+
+    function myFunction() {
+      var x = document.createElement("INPUT");
+      x.setAttribute("type", "range");
+      document.body.appendChild(x);
+    }
+
+
+  </script>
+</head>
+
+<body>
+  <table width="100%">
+    <tr>
+      <td width="40%">
+        <div id="aa">
+          <h1>Aar<span class="orange_o">O</span>n's Geo Routing Demo <span class="small">v2.0&beta;</span></h1></div>
+      </td>
+      <td width="100">
+        <nobr><input type="checkbox" id="polyBox" onchange="showPoly()" /> <span class="sliders">Show Polygon</span></nobr>
+      </td>
+      <td width="100">
+        <nobr><input type="checkbox" id="lineBox" onchange="calcRoute()" /> <span class="sliders">Calc Route</span></nobr>
+      </td>
+      <td><button onclick="randomRoute()"/>Random Route</button></td>
+    </tr>
+  </table>
+  <div id="map-canvas"></div>
+</body>
+
+</html>
